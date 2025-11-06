@@ -19,6 +19,7 @@ export function RoomDetailPage() {
   const navigate = useNavigate();
   const [room, setRoom] = useState<Room | null>(null);
   const [building, setBuilding] = useState<Building | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedSlot, setSelectedSlot] = useState<{day: string, slot: TimeSlot} | null>(null);
   const [isReservationDialogOpen, setIsReservationDialogOpen] = useState(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
@@ -27,25 +28,41 @@ export function RoomDetailPage() {
   const [conflicts, setConflicts] = useState<Array<{ date: string; activityType: string }>>([]);
 
   useEffect(() => {
+    console.log('RoomDetailPage - Loading...', { buildingId, roomId });
+    setIsLoading(true);
     const foundBuilding = initialBuildings.find(b => b.id === buildingId);
+    console.log('Found building:', foundBuilding);
     if (foundBuilding) {
       setBuilding(foundBuilding);
       const foundRoom = foundBuilding.rooms.find(r => r.id === roomId);
+      console.log('Found room:', foundRoom);
       setRoom(foundRoom || null);
     } else {
       setBuilding(null);
       setRoom(null);
     }
+    setIsLoading(false);
   }, [buildingId, roomId]);
 
   if (!buildingId || !roomId) {
     return <Navigate to="/" replace />;
   }
 
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-muted-foreground mb-2">Cargando...</h3>
+      </div>
+    );
+  }
+
   if (!building || !room) {
     return (
       <div className="text-center py-12">
         <h3 className="text-muted-foreground mb-2">Sala no encontrada</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Building ID: {buildingId}, Room ID: {roomId}
+        </p>
         <Button onClick={() => navigate('/')}>
           Volver a Edificios
         </Button>
@@ -83,34 +100,19 @@ export function RoomDetailPage() {
     setReservationData(data);
     setIsReservationDialogOpen(false);
     
-    const detectedConflicts: Array<{ date: string; activityType: string }> = [];
-    
-    data.dates.forEach(dateStr => {
-      const dayOfWeek = format(parseISO(dateStr), 'EEEE', { locale: es });
-      const daySchedule = room.schedule[dayOfWeek as keyof typeof room.schedule];
+    // Para reservas de semestre completo, verificar si hay conflictos
+    if (data.type === 'semester') {
+      // Si hay reservas específicas en este slot, hay conflictos
+      const hasConflicts = selectedSlot.slot.specificDateReservations && 
+                           selectedSlot.slot.specificDateReservations.length > 0;
       
-      if (daySchedule) {
-        const existingSlot = daySchedule.find(s => s.block === selectedSlot.slot.block);
-        
-        if (existingSlot && existingSlot.status === 'ocupado') {
-          detectedConflicts.push({
-            date: dateStr,
-            activityType: existingSlot.activityType || 'Desconocido'
-          });
-        }
-      }
-    });
-    
-    setConflicts(detectedConflicts);
-    
-    if (detectedConflicts.length > 0) {
-      setIsRequestSentDialogOpen(true);
-    } else {
-      const updatedSchedule = { ...room.schedule };
-      
-      data.dates.forEach(dateStr => {
-        const dayOfWeek = format(parseISO(dateStr), 'EEEE', { locale: es });
-        const daySchedule = updatedSchedule[dayOfWeek as keyof typeof room.schedule];
+      if (hasConflicts && data.exceptionMessage) {
+        // Si hay un mensaje de excepción, enviar la solicitud
+        setIsRequestSentDialogOpen(true);
+      } else {
+        // Actualizar el horario para todo el semestre
+        const updatedSchedule = { ...room.schedule };
+        const daySchedule = updatedSchedule[selectedSlot.day as keyof typeof room.schedule];
         
         if (daySchedule) {
           const slotIndex = daySchedule.findIndex(s => s.block === selectedSlot.slot.block);
@@ -118,14 +120,42 @@ export function RoomDetailPage() {
           if (slotIndex !== -1) {
             daySchedule[slotIndex] = {
               ...daySchedule[slotIndex],
-              status: 'reservado-especifico',
-              activityType: data.activityType,
-              reservedBy: data.professorName,
-              course: data.subject
+              status: 'ocupado',
+              subject: 'Asignatura Reservada',
+              professor: 'Rodrigo Muñoz',
+              group: 'Grupo 1'
             };
           }
         }
-      });
+        
+        setRoom({ ...room, schedule: updatedSchedule });
+        setIsConfirmationDialogOpen(true);
+      }
+    } else if (data.type === 'specific' && data.date) {
+      // Para reservas de fecha específica
+      const updatedSchedule = { ...room.schedule };
+      const daySchedule = updatedSchedule[selectedSlot.day as keyof typeof room.schedule];
+      
+      if (daySchedule) {
+        const slotIndex = daySchedule.findIndex(s => s.block === selectedSlot.slot.block);
+        
+        if (slotIndex !== -1) {
+          const existingReservations = daySchedule[slotIndex].specificDateReservations || [];
+          daySchedule[slotIndex] = {
+            ...daySchedule[slotIndex],
+            status: 'reservado-especifico',
+            specificDateReservations: [
+              ...existingReservations,
+              {
+                date: data.date.toISOString(),
+                subject: 'Evento Específico',
+                professor: 'Rodrigo Muñoz',
+                activityType: data.activityType || 'otro'
+              }
+            ]
+          };
+        }
+      }
       
       setRoom({ ...room, schedule: updatedSchedule });
       setIsConfirmationDialogOpen(true);
@@ -149,10 +179,10 @@ export function RoomDetailPage() {
 
   const equipmentIcons: Record<string, React.ReactNode> = {
     'Proyector': <Projector className="h-4 w-4" />,
-    'Computador': <Monitor className="h-4 w-4" />,
+    'Computadora': <Monitor className="h-4 w-4" />,
+    'Audio': <Volume2 className="h-4 w-4" />,
     'Pizarra Digital': <Tablet className="h-4 w-4" />,
-    'Sistema de Audio': <Volume2 className="h-4 w-4" />,
-    'WiFi': <Wifi className="h-4 w-4" />,
+    'Red WiFi': <Wifi className="h-4 w-4" />,
     'Aire Acondicionado': <Wind className="h-4 w-4" />,
     'Cámara': <Search className="h-4 w-4" />
   };
@@ -185,9 +215,14 @@ export function RoomDetailPage() {
             <div className="text-sm font-medium">Equipamiento disponible:</div>
             <div className="flex flex-wrap gap-2">
               {room.equipment.map((eq) => (
-                <Badge key={eq} variant="outline" className="flex items-center gap-1.5">
-                  {equipmentIcons[eq]}
-                  {eq}
+                <Badge 
+                  key={eq.id} 
+                  variant="outline" 
+                  className={`flex items-center gap-1.5 ${!eq.working ? 'opacity-50' : ''}`}
+                >
+                  {equipmentIcons[eq.name]}
+                  {eq.name}
+                  {!eq.working && <span className="text-xs text-red-500 ml-1">(No funciona)</span>}
                 </Badge>
               ))}
             </div>
@@ -242,9 +277,8 @@ export function RoomDetailPage() {
         isOpen={isReservationDialogOpen}
         onClose={() => setIsReservationDialogOpen(false)}
         onConfirm={handleReservationConfirm}
-        roomNumber={room.number}
-        timeSlot={selectedSlot?.slot.block || ''}
-        dayOfWeek={selectedSlot?.day || ''}
+        room={room}
+        selectedSlot={selectedSlot}
       />
 
       <ReservationConfirmationDialog

@@ -3,8 +3,9 @@ import { BuildingsPage } from './pages/BuildingsPage';
 import { BuildingDetailPage } from './pages/BuildingDetailPage';
 import { RoomDetailPage } from './pages/RoomDetailPage';
 import { SecretaryPage } from './pages/SecretaryPage';
+import { DebugPage } from './pages/DebugPage';
 import { Button } from './components/ui/button';
-import { Home, ClipboardList } from 'lucide-react';
+import { Home, ClipboardList, Bug } from 'lucide-react';
 import universityLogo from "./assets/logo.png";
 
 function AppLayout() {
@@ -53,6 +54,16 @@ function AppLayout() {
                     <span className="hidden sm:inline">Secretaría</span>
                   </Link>
                 </Button>
+                <Button
+                  variant={currentPath === '/debug' ? 'default' : 'outline'}
+                  asChild
+                  className="flex items-center gap-2"
+                >
+                  <Link to="/debug">
+                    <Bug className="h-4 w-4" />
+                    <span className="hidden sm:inline">Debug</span>
+                  </Link>
+                </Button>
               </div>
             </div>
           </div>
@@ -66,6 +77,7 @@ function AppLayout() {
           <Route path="/building/:buildingId" element={<BuildingDetailPage />} />
           <Route path="/building/:buildingId/room/:roomId" element={<RoomDetailPage />} />
           <Route path="/secretary" element={<SecretaryPage />} />
+          <Route path="/debug" element={<DebugPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

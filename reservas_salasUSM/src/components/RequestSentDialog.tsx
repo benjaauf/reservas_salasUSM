@@ -2,16 +2,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from './ui/button';
 import { AlertCircle, Calendar, Clock, MapPin, User, Mail, MessageSquare } from 'lucide-react';
 import { ReservationData } from './ReservationDialog';
-import { format } from 'date-fns@4.1.0';
-import { es } from 'date-fns@4.1.0/locale';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface RequestSentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   roomNumber: string;
-  day: string;
-  blockNumber: number;
-  reservationData: ReservationData;
+  dayOfWeek: string;
+  timeSlot: string | number;
+  reservationData: ReservationData | null;
   conflicts: Array<{ date: string; activityType: string }>;
 }
 
@@ -19,8 +19,8 @@ export function RequestSentDialog({
   isOpen,
   onClose,
   roomNumber,
-  day,
-  blockNumber,
+  dayOfWeek,
+  timeSlot,
   reservationData,
   conflicts
 }: RequestSentDialogProps) {
@@ -38,6 +38,10 @@ export function RequestSentDialog({
     
     return `${formatTime(startHour, startMin)} - ${formatTime(endHour, endMin)}`;
   };
+
+  if (!reservationData) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -88,13 +92,13 @@ export function RequestSentDialog({
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-utfsm-blue flex-shrink-0" />
                 <span className="font-medium">Día:</span>
-                <span>{day}</span>
+                <span>{dayOfWeek}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">
                 <Clock className="h-4 w-4 text-utfsm-blue flex-shrink-0" />
                 <span className="font-medium">Horario:</span>
-                <span>Bloque {blockNumber * 2 - 1}-{blockNumber * 2} | {getBlockTimeLabel(blockNumber)} (70 minutos)</span>
+                <span>Bloque {typeof timeSlot === 'number' ? `${timeSlot * 2 - 1}-${timeSlot * 2} | ${getBlockTimeLabel(timeSlot)}` : timeSlot} (70 minutos)</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">

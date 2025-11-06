@@ -11,20 +11,34 @@ export function BuildingDetailPage() {
   const { buildingId } = useParams<{ buildingId: string }>();
   const navigate = useNavigate();
   const [building, setBuilding] = useState<Building | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setIsLoading(true);
     const foundBuilding = initialBuildings.find(b => b.id === buildingId);
     setBuilding(foundBuilding || null);
+    setIsLoading(false);
   }, [buildingId]);
 
   if (!buildingId) {
     return <Navigate to="/" replace />;
   }
 
+  if (isLoading) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-muted-foreground mb-2">Cargando...</h3>
+      </div>
+    );
+  }
+
   if (!building) {
     return (
       <div className="text-center py-12">
         <h3 className="text-muted-foreground mb-2">Edificio no encontrado</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Building ID: {buildingId}
+        </p>
         <Button onClick={() => navigate('/')}>
           Volver a Edificios
         </Button>

@@ -1,12 +1,11 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-  darkMode: ["class"],
+export default {
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
-    "./*.tsx"
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./App.tsx",
+    "./components/**/*.{js,ts,jsx,tsx}",
+    "./pages/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -44,35 +43,18 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Colores personalizados UTFSM
-        utfsm: {
-          blue: "var(--utfsm-blue)",
-          red: "var(--utfsm-red)",
-          gold: "var(--utfsm-gold)",
-          green: "var(--utfsm-green)",
-          navy: "var(--utfsm-navy)",
-        },
+        "utfsm-blue": "#1e3a8a",
+        "utfsm-red": "#dc2626",
+        "utfsm-gold": "#f59e0b",
+        "utfsm-green": "#059669",
+        "utfsm-navy": "#1e293b",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
-      keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
 }
