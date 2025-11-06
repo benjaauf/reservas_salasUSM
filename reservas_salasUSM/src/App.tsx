@@ -3,7 +3,7 @@ import { BuildingsPage } from './pages/BuildingsPage';
 import { SecretaryPage } from './pages/SecretaryPage';
 import { Button } from './components/ui/button';
 import { Home, ClipboardList } from 'lucide-react';
-import universityLogo from 'figma:asset/c524cf61cfc13760af5d9cb5c3b03457a6407bae.png';
+import universityLogo from './assets/logo.png';
 
 function AppLayout() {
   const location = useLocation();
