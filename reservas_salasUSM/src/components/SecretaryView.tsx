@@ -33,8 +33,8 @@ import {
   FileText,
   ChevronDown
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns@4.1.0';
-import { es } from 'date-fns@4.1.0/locale';
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export function SecretaryView() {
   const [requests, setRequests] = useState<ExceptionRequest[]>(initialRequests);

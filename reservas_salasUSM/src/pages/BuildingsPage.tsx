@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building } from '../types';
+import type { Building } from '../types';
 import { buildings as initialBuildings } from '../data/mockData';
 import { BuildingCard } from '../components/BuildingCard';
 import { BuildingRooms } from '../components/BuildingRooms';

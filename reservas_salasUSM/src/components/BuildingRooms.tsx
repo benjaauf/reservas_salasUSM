@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Building, Room } from '../types';
+import type { Building, Room } from '../types';
 import { Button } from './ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { RoomSimpleCard } from './RoomSimpleCard';
 import { RoomDetail } from './RoomDetail';
-import universityLogo from 'figma:asset/c524cf61cfc13760af5d9cb5c3b03457a6407bae.png';
+import universityLogo from '../assets/logo.png';
 
 interface BuildingRoomsProps {
   building: Building | null;
